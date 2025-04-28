@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora con Auth0</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .calculator-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .result {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #0d6efd;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        .operation-btn {
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+        .profile-pic {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid white;
+            object-fit: cover;
+            background-color: #fff;
+        }
+        .user-welcome {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            margin-right: 1rem;
+        }
+        .user-name {
+            color: white;
+            margin: 0;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+        .navbar {
+            padding: 0.5rem 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .nav-link {
+            color: rgba(255,255,255,0.8) !important;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: white !important;
+        }
+        .number-input {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .number-input input {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .remove-number {
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">Calculadora Auth0</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto">
+                    {% if session %}
+                        <div class="user-welcome">
+                            {% if session.picture %}
+                                <img src="{{session.picture}}" alt="{{session.name}}" class="profile-pic">
+                            {% else %}
+                                <div class="profile-pic d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                            {% endif %}
+                            <p class="user-name">{{session.name}}</p>
+                        </div>
+                        {% if session.email == "jose.leyva244685@potros.itson.edu.mx" %}
+                            <a class="nav-link" href="/admin">Administración</a>
+                        {% endif %}
+                        <a class="nav-link" href="/logout">Cerrar Sesión</a>
+                    {% else %}
+                        <a class="nav-link" href="/login">Iniciar Sesión</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% if session %}
+            <div class="calculator-container">
+                <h2 class="text-center mb-4">Calculadora</h2>
+                <div id="numbers-container">
+                    <div class="number-input">
+                        <input type="number" class="form-control" placeholder="Número">
+                        <span class="remove-number" onclick="removeNumber(this)">×</span>
+                    </div>
+                    <div class="number-input">
+                        <input type="number" class="form-control" placeholder="Número">
+                        <span class="remove-number" onclick="removeNumber(this)">×</span>
+                    </div>
+                </div>
+                <button class="btn btn-secondary w-100 mb-3" onclick="addNumberInput()">Agregar número</button>
+                <div class="row">
+                    <div class="col-3">
+                        <button class="btn btn-primary operation-btn" onclick="calculate('+')">+</button>
+                    </div>
+                    <div class="col-3">
+                        <button class="btn btn-primary operation-btn" onclick="calculate('-')">-</button>
+                    </div>
+                    <div class="col-3">
+                        <button class="btn btn-primary operation-btn" onclick="calculate('*')">×</button>
+                    </div>
+                    <div class="col-3">
+                        <button class="btn btn-primary operation-btn" onclick="calculate('/')">÷</button>
+                    </div>
+                </div>
+                <div class="result" id="result">0</div>
+            </div>
+        {% else %}
+            <div class="text-center mt-5">
+                <h1>Bienvenido a la Calculadora</h1>
+                <p class="lead">Por favor, inicia sesión para usar la calculadora</p>
+                <a href="/login" class="btn btn-primary btn-lg">Iniciar Sesión</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function addNumberInput() {
+            const container = document.getElementById('numbers-container');
+            const newInput = document.createElement('div');
+            newInput.className = 'number-input';
+            newInput.innerHTML = `
+                <input type="number" class="form-control" placeholder="Número">
+                <span class="remove-number" onclick="removeNumber(this)">×</span>
+            `;
+            container.appendChild(newInput);
+        }
+
+        function removeNumber(element) {
+            const container = document.getElementById('numbers-container');
+            if (container.children.length > 2) {
+                element.parentElement.remove();
+            }
+        }
+
+        async function calculate(operation) {
+            const inputs = document.querySelectorAll('.number-input input');
+            const numbers = Array.from(inputs).map(input => input.value).filter(value => value !== '');
+            
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        numbers: numbers,
+                        operation: operation
+                    })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('result').textContent = data.result;
+                } else {
+                    alert(data.error || 'Error en el cálculo');
+                }
+            } catch (error) {
+                alert('Error al realizar el cálculo');
+            }
+        }
+    </script>
+</body>
+</html>
