@@ -143,7 +143,7 @@ def admin():
         return redirect("/login")
     
     # Verificar si el usuario es administrador
-    if session["user"]["email"] != "jose.leyva244685@potros.itson.edu.mx":
+    if session["user"]["email"] != "tu_email@ejemplo.com":
         return jsonify({"error": "No autorizado"}), 403
     
     conn = sqlite3.connect('calculator.db')
